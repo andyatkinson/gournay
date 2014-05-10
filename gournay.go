@@ -4,7 +4,6 @@ import (
   "fmt"
   "net/http"
   "os"
-  "io"
   "html/template"
   "crypto/md5"
   "encoding/hex"
@@ -35,44 +34,53 @@ func newHandler(w http.ResponseWriter, r *http.Request) {
     "Content-Type",
     "text/html",
   )
-  io.WriteString(
-    w,
-    `<doctype html>
+  data := storage
+  tmpl, err := template.New("form page").Parse(
+    `<!DOCTYPE html>
     <html>
-    <head><title>Hello World</title></head>
+    <head>
+      <title>Gournay URL shrinker</title>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    </head>
     <body>
-      <form action="/create" method="POST">
-        <label>Create hash for URL</label>
-        <input type="text" name="url"/>
-        <input type="submit" value="Save" />
+    <div class="container" style="padding:50px 0;">
+      <h2>Gournay URL shrinker</h2>
+      <a href="https://github.com/andyatkinson/gournay">Source on github</a>
+      <form role="form" action="/create" method="POST">
+        <div class="form-group">
+          <label for="url-input">URL</label>
+          <input type="text" class="form-control" id="url-input" name="url" placeholder="http://cnn.com" />
+        </div>
+        <button type="submit" class="btn btn-primary">Shrink URL</button>
       </form>
 
-      <form action="/find" method="POST">
-        <label>Look up hash</label>
-        <input type="text" name="hash"/>
-        <input type="submit" value="Find" />
-      </form>
+      <div class="links" style="padding: 20px 0;">
+        <ul>
+        {{range $index, $element := .}}
+          <li>
+            <form role="form" action="/find" method="POST">
+              <div class="form-group">
+                <input type="hidden" name="hash" value="{{$index}}" />
+                <button type="submit" class="btn btn-link">{{$index}}</button>
+              </div>
+            </form>
+          </li>
+        {{end}}
+        </ul>
+      </div>
+    </div>
     </body>
-    </html>`,
-  )
+    </html>`)
+    err = tmpl.Execute(w, data)
+    if err != nil { panic(err) }
 }
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
   url := r.FormValue("url")
   hash := GetMD5Hash(url)[0:5]
   storage[hash] = url
-  data := Data{url, hash}
-  fmt.Println("storage", storage)
-  fmt.Println("data", data)
-  tmpl, err := template.New("urlResp").Parse(`<!doctype html>
-    <html><body>
-    <p>{{.Hash}}</p>
-    <a href="/">Back</a>
-    </body></html>
-    </html>`)
-  if err != nil { panic(err) }
-  err = tmpl.Execute(w, data)
-  if err != nil { panic(err) }
+  http.Redirect(w, r, "/new", 301)
 }
 
 func GetMD5Hash(text string) string {
@@ -84,16 +92,5 @@ func GetMD5Hash(text string) string {
 func findHandler(w http.ResponseWriter, r *http.Request) {
   hashQuery := r.FormValue("hash")
   result := storage[hashQuery]
-  fmt.Println("result", result)
-  data := Data{result, hashQuery}
-  fmt.Println("data", data)
-  tmpl, err := template.New("result").Parse(`<!doctype html>
-    <html><body>
-    <p>{{.Url}}</p>
-    <a href="/">Back</a>
-    </body></html>
-    </html>`)
-  if err != nil { panic(err) }
-  err = tmpl.Execute(w, data)
-  if err != nil { panic(err) }
+  http.Redirect(w, r, result, 301)
 }
