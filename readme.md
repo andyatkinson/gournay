@@ -1,3 +1,11 @@
+### building
+
+    go build gournay.go
+
+### running in development
+
+    PORT=5000 ./gournay
+
 ### resources
 
   * http://golang.org/doc/articles/wiki/
