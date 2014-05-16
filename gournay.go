@@ -1,14 +1,17 @@
 package main
 
 import (
-  "net/http"
+  "fmt"
   "os"
+  "net/http"
   "html/template"
   "crypto/md5"
   "encoding/hex"
+  _ "github.com/lib/pq"
+  "database/sql"
 )
 
-var storage map[string]string
+var db *sql.DB
 
 func GetMD5Hash(text string) string {
   hasher := md5.New()
@@ -17,15 +20,20 @@ func GetMD5Hash(text string) string {
 }
 
 func main() {
-  storage = make(map[string]string)
+  var err error
+  // need to set up a connection string ENV var, and a variable to control sslmode in heroku
+  connectionString := os.Getenv("DATABASE_URL")
+  db, err = sql.Open("postgres", connectionString)
+  if err != nil {
+    panic(err)
+  }
 
   http.HandleFunc("/", newHandler)
   http.HandleFunc("/create", createHandler)
   http.HandleFunc("/find", findHandler)
-  err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-  if err != nil {
-    panic(err)
-  }
+
+  http.ListenAndServe(":5000", nil)
+  defer db.Close()
 }
 
 func newHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +41,25 @@ func newHandler(w http.ResponseWriter, r *http.Request) {
     "Content-Type",
     "text/html",
   )
-  data := storage
+
+  var (
+    url string
+    hash string
+  )
+  data := make(map[string]string)
+  rows, err := db.Query("SELECT url, hash FROM entries")
+  if err != nil {
+    panic(err)
+  }
+  for rows.Next() {
+    err := rows.Scan(&url, &hash)
+    if err != nil {
+      panic(err)
+    }
+    data[hash] = url
+  }
+  defer rows.Close()
+
   tmpl, err := template.New("form page").Parse(
     `<!DOCTYPE html>
     <html>
@@ -77,13 +103,29 @@ func newHandler(w http.ResponseWriter, r *http.Request) {
 
 func createHandler(w http.ResponseWriter, r *http.Request) {
   url := r.FormValue("url")
+  fmt.Println("got url:", url)
   hash := GetMD5Hash(url)[0:5]
-  storage[hash] = url
+  stmt, err := db.Prepare("INSERT INTO entries (url, hash) VALUES ($1, $2)")
+  if err != nil {
+    panic(err)
+  }
+  res, err := stmt.Exec(url, hash)
+  if err != nil {
+    panic(err)
+  }
+  lastId, err := res.LastInsertId()
+  fmt.Println("inserted records, last ID",lastId)
   http.Redirect(w, r, "/new", 301)
 }
 
 func findHandler(w http.ResponseWriter, r *http.Request) {
   hashQuery := r.FormValue("hash")
-  result := storage[hashQuery]
-  http.Redirect(w, r, result, 301)
+  fmt.Println("got hash query:", hashQuery)
+  var url string
+  err := db.QueryRow("SELECT url from entries WHERE hash = $1", hashQuery).Scan(&url)
+  fmt.Println("Redirecting to....", url)
+  if err != nil {
+    panic(err)
+  }
+  http.Redirect(w, r, url, 301)
 }
