@@ -4,7 +4,7 @@ Gournay is a URL shrinker. The name is a horrible pun. I started with "shrink", 
 
     go build gournay.go
 
-When pushing to heroku, the app is compliled.
+When pushing to heroku, the app is compiled. When adding new dependencies, remember to run `godep save`.
 
 ### running in development
 
