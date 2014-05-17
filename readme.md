@@ -4,6 +4,8 @@ Gournay is a URL shrinker. The name is a horrible pun. I started with "shrink", 
 
     go build gournay.go
 
+When pushing to heroku, the app is compliled.
+
 ### running in development
 
     # psql
@@ -19,6 +21,10 @@ Local postgres connection string like this, for a database called `gournay_devel
 
     ./gournay
     # port is configured to be 5000
+
+### Heroku
+
+Details on using the [Heroku buildpack](http://stackoverflow.com/a/16655766/126688).
 
 ### resources
 
