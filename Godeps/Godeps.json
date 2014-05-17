@@ -1,6 +1,6 @@
 {
 	"ImportPath": "gournay",
-	"GoVersion": "go1.2.1",
+	"GoVersion": "go1.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/lib/pq",
