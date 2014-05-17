@@ -28,6 +28,7 @@ Details on using the [Heroku buildpack](http://stackoverflow.com/a/16655766/1266
 
 ### resources
 
+  * [go import path](http://blog.golang.org/organizing-go-code)
   * http://golang.org/doc/articles/wiki/
   * http://mmcgrana.github.io/2012/09/getting-started-with-go-on-heroku.html
   * http://blog.zmxv.com/2011/09/go-template-examples.html
