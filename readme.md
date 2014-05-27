@@ -28,6 +28,7 @@ Details on using the [Heroku buildpack](http://stackoverflow.com/a/16655766/1266
 
     * Create a heroku instance with the custom buildpack
     * Enable the postgres addon with: `heroku addons:add heroku-postgresql`
+    * Heroku binds to a random port, can't hard-code the port. [details](http://stackoverflow.com/a/15693371/126688)
 
 ### resources
 

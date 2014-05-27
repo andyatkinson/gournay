@@ -32,7 +32,11 @@ func main() {
   http.HandleFunc("/create", createHandler)
   http.HandleFunc("/find", findHandler)
 
-  http.ListenAndServe(":5000", nil)
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "5000"
+  }
+  http.ListenAndServe(":" + port, nil)
   defer db.Close()
 }
 
