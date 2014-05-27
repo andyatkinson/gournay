@@ -26,6 +26,9 @@ Local postgres connection string like this, for a database called `gournay_devel
 
 Details on using the [Heroku buildpack](http://stackoverflow.com/a/16655766/126688).
 
+    * Create a heroku instance with the custom buildpack
+    * Enable the postgres addon with: `heroku addons:add heroku-postgresql`
+
 ### resources
 
   * [go import path](http://blog.golang.org/organizing-go-code)
